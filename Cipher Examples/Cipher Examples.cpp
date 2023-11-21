@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 #include <cctype>
 
 static std::string g_Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*§$%&()=");
@@ -99,15 +100,16 @@ public:
 };
 
 int main() {
+
 	std::reverse(g_ReversedAlphabet.begin(), g_ReversedAlphabet.end());
 
 	std::string input;
 	int shift = 0, key = 0;
 
-	std::cout << "Which text is to be encrypted ?\n";
+	std::cout << "Which text is to be encrypted?\n";
 	getline(std::cin, input);
 
-	std::cout << "shift amount for caesar? (0-" << g_Alphabet.length() - 1 << ")\n";
+	std::cout << "shift amount for caesar? (0-" << g_Alphabet.length() << ")\n";
 	std::cin >> shift;
 
 	std::cout << "key for xor?\n";
@@ -130,13 +132,45 @@ int main() {
 	std::cout << "encrypted chao:\n";
 	std::cout << chao << std::endl;
 
-	std::cout << "The entered text gets now permutated\n";
+	std::string perm;
+	std::cout << "You can now enter a string for permutation.\n";
 
+	std::cin >> perm;
 	do {
 
-		std::cout << "Permutated: [" << input << "]\n";
+		std::cout << "Permutated: [" << perm << "]\n";
 
-	} while (std::ranges::next_permutation(input.begin(), input.end()).found);
+	} while (std::ranges::next_permutation(perm.begin(), perm.end()).found);
+
+	std::cout << "Using permutation for bruteforcing.\n";
+
+	std::string password = "unsafe";
+	std::string alphabet = "aefklnurs"; //shorten else it takes for ever
+	auto length = 6;
+	bool found = false;
+
+	do {
+		
+		std::cout << "Next Permutation: [" << alphabet << "]\n";
+
+		auto temp = alphabet;
+		
+		std::vector<std::string> subStr;
+		for (int i = 0; i <= temp.length() - length; i++) {
+
+			subStr.push_back(temp.substr(i, length));
+		}
+
+		for (const auto& str : subStr) {
+
+			if (!str.compare(password)) {
+
+				found = true;
+				std::cout << "Found password: " << str;
+			}
+		}
+
+	} while (std::ranges::next_permutation(alphabet.begin(), alphabet.end()).found && !found);
 
 	return 0;
 }
