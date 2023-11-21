@@ -5,8 +5,8 @@
 #include <vector>
 #include <cctype>
 
-static std::string g_Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*ง$%&()=");
-static std::string g_ReversedAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*ง$%&()=");
+static std::string g_Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*ยง$%&()=");
+static std::string g_ReversedAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*ยง$%&()=");
 
 struct Input_t {
 	std::string m_Input = "";
@@ -118,7 +118,7 @@ public:
 
 //basicly std::transform template is unable to use abstract classes for some reason
 template<typename Iterator>
-Iterator transform(Iterator First, Iterator Last, Iterator Output, ITransformation* Transformation) {
+Iterator Transform(Iterator First, Iterator Last, Iterator Output, ITransformation* Transformation) {
 
 	while (First != Last) {
 
@@ -130,7 +130,7 @@ Iterator transform(Iterator First, Iterator Last, Iterator Output, ITransformati
 void ExecuteTransformation(const std::string& Input, ITransformation* Transformation) {
 
 	std::string temp = Input;
-	transform(temp.begin(), temp.end(), temp.begin(), Transformation);
+	Transform(temp.begin(), temp.end(), temp.begin(), Transformation);
 	std::cout << "Encrypted " << Transformation->m_Name << ":\n";
 	std::cout << temp << std::endl;
 	delete Transformation;
