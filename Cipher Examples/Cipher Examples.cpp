@@ -8,19 +8,30 @@
 static std::string g_Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*§$%&()=");
 static std::string g_ReversedAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;#'*+-/*§$%&()=");
 
+struct Input_t {
+	std::string m_Input = "";
+	int m_Shift = 0, m_Key = 0;
+};
+
 class ITransformation {
 
 public:
 	virtual char operator()(char Char) = 0;
+
+public:
+	std::string m_Name;
 };
 
-class Caesar : public ITransformation {
+class CCaesar : public ITransformation {
 
 private:
 	int m_Shift;
 
 public:
-	Caesar(int Shift) : m_Shift(Shift) { }
+	CCaesar(int Shift) : m_Shift(Shift) {
+	
+		m_Name = "Caesar";
+	}
 
 	char operator()(char Char) {
 
@@ -44,13 +55,16 @@ public:
 	}
 };
 
-class Xor : public ITransformation {
+class CXor : public ITransformation {
 
 private:
 	int m_Key;
 
 public:
-	Xor(int Key) : m_Key(Key) { }
+	CXor(int Key) : m_Key(Key) {
+
+		m_Name = "Xor";
+	}
 
 	char operator()(char Char) {
 
@@ -65,7 +79,7 @@ public:
 	}
 };
 
-class Chao : public ITransformation {
+class CChao : public ITransformation {
 
 private:
 	bool m_Mode;
@@ -73,7 +87,10 @@ private:
 
 public:
 	//true == enc | false == dec
-	Chao(bool Mode) : m_Mode(Mode), m_Left(g_Alphabet), m_Right(g_ReversedAlphabet) { }
+	CChao(bool Mode) : m_Mode(Mode), m_Left(g_Alphabet), m_Right(g_ReversedAlphabet) {
+
+		m_Name = "Chao";
+	}
 
 	char operator()(char Char) {
 
@@ -99,62 +116,57 @@ public:
 
 };
 
-int main() {
+//basicly std::transform template is unable to use abstract classes for some reason
+template<typename Iterator>
+Iterator transform(Iterator First, Iterator Last, Iterator Output, ITransformation* Transformation) {
 
-	std::reverse(g_ReversedAlphabet.begin(), g_ReversedAlphabet.end());
+	while (First != Last) {
 
-	std::string input;
-	int shift = 0, key = 0;
+		*Output++ = Transformation->operator()(*First++);
+	}
 
-	std::cout << "Which text is to be encrypted?\n";
-	getline(std::cin, input);
+	return Output;
+}
+void ExecuteTransformation(const std::string& Input, ITransformation* Transformation) {
 
-	std::cout << "shift amount for caesar? (0-" << g_Alphabet.length() << ")\n";
-	std::cin >> shift;
+	std::string temp = Input;
+	transform(temp.begin(), temp.end(), temp.begin(), Transformation);
+	std::cout << "Encrypted " << Transformation->m_Name << ":\n";
+	std::cout << temp << std::endl;
+	delete Transformation;
+}
 
-	std::cout << "key for xor?\n";
-	std::cin >> key;
+void ShowPermutation() {
 
-	std::cout << "before encryption:\n" << input << std::endl;
+	std::cout << "You can now enter a string for permutation.\n>>";
 
-	auto caesar = input;
-	std::transform(caesar.begin(), caesar.end(), caesar.begin(), Caesar(shift));
-	std::cout << "encrypted caesar:\n";
-	std::cout << caesar << std::endl;
-
-	auto xored = input;
-	std::transform(xored.begin(), xored.end(), xored.begin(), Xor(key));
-	std::cout << "encrypted xor:\n";
-	std::cout << xored << std::endl;
-
-	auto chao = input;
-	std::transform(chao.begin(), chao.end(), chao.begin(), Chao(true));
-	std::cout << "encrypted chao:\n";
-	std::cout << chao << std::endl;
-
-	std::string perm;
-	std::cout << "You can now enter a string for permutation.\n";
-
+	std::string perm;  
 	std::cin >> perm;
+
 	do {
 
 		std::cout << "Permutated: [" << perm << "]\n";
 
 	} while (std::ranges::next_permutation(perm.begin(), perm.end()).found);
+}
 
-	std::cout << "Using permutation for bruteforcing.\n";
+void BruteforcePassword() {
 
-	std::string password = "unsafe";
-	std::string alphabet = "aefklnurs"; //shorten else it takes for ever
-	auto length = 6;
+	std::cout << "You can now enter a random string with the following letters: abcdefghijk\nto see how you can use permutation for simple bruteforcing.\n>>"; 
+
+	std::string password; //getchar() bugging?
+	std::cin >> password;
+
+	std::string alphabet = "abcdefghijk"; //shorten alphabet else it takes for ever
+	auto length = password.length();
 	bool found = false;
 
 	do {
-		
+
 		std::cout << "Next Permutation: [" << alphabet << "]\n";
 
 		auto temp = alphabet;
-		
+
 		std::vector<std::string> subStr;
 		for (int i = 0; i <= temp.length() - length; i++) {
 
@@ -166,11 +178,47 @@ int main() {
 			if (!str.compare(password)) {
 
 				found = true;
-				std::cout << "Found password: " << str;
+				std::cout << "Found password: " << str << "\n";
 			}
 		}
 
 	} while (std::ranges::next_permutation(alphabet.begin(), alphabet.end()).found && !found);
 
-	return 0;
+	system("pause");
+}
+
+Input_t ParseInput() {
+
+	Input_t temp;
+
+	std::cout << "Input something you want to encrypt?\n>>";
+	getline(std::cin, temp.m_Input);
+
+	std::cout << "Shift-Amount for Caesar? (0 - " << g_Alphabet.length() << ")\n>>";
+	std::cin >> temp.m_Shift;
+
+	std::cout << "Key for Xor? (-128 - 127)\n>>";
+	std::cin >> temp.m_Key;
+
+	std::cout << "Using default declaration for Chao.\n";
+
+	std::cout << "Plaintext:\n" << temp.m_Input << std::endl;
+
+	return temp;
+}
+
+int main() {
+
+	std::reverse(g_ReversedAlphabet.begin(), g_ReversedAlphabet.end());
+
+	auto input = ParseInput();
+
+	ExecuteTransformation(input.m_Input, new CCaesar(input.m_Shift));
+	ExecuteTransformation(input.m_Input, new CXor(input.m_Key));
+	ExecuteTransformation(input.m_Input, new CChao(true));
+
+	ShowPermutation();
+	BruteforcePassword();
+
+	return EXIT_SUCCESS;
 }
